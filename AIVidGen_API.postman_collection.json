@@ -1,0 +1,432 @@
+{
+  "info": {
+    "name": "AIVidGen API",
+    "description": "REST API collection for AIVidGen Backend. \n\nSetup:\n1. Set `base_url` variable to your server URL (default: http://localhost:5000)\n2. Run 'Register' or 'Login' first — the token is auto-saved to `auth_token`\n3. All protected routes use `auth_token` automatically",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "generation_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('auth_token', res.token);",
+                  "  console.log('Token saved:', res.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user. Token is auto-saved to `auth_token` collection variable."
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('auth_token', res.token);",
+                  "  console.log('Token saved:', res.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with existing credentials. Token is auto-saved to `auth_token`."
+          }
+        },
+        {
+          "name": "Get Current User (me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Get the currently authenticated user (no password returned)."
+          }
+        },
+        {
+          "name": "Login - Wrong Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Should return 401 Invalid email or password."
+          }
+        },
+        {
+          "name": "Register - Duplicate Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Should return 409 Conflict."
+          }
+        },
+        {
+          "name": "Me - No Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Should return 401 Not authorized, no token provided."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Generate",
+      "item": [
+        {
+          "name": "Generate - Marketing (Full)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.generation && res.generation._id) {",
+                  "  pm.collectionVariables.set('generation_id', res.generation._id);",
+                  "  console.log('Generation ID saved:', res.generation._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"videoType\": \"marketing\",\n  \"topic\": \"AI-powered video generation tool\",\n  \"keywords\": [\"AI\", \"automation\", \"video\", \"content creation\"],\n  \"audience\": \"small business owners\",\n  \"tone\": \"persuasive\",\n  \"duration\": \"30s\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "generate"]
+            },
+            "description": "Full payload — marketing video. Generation ID is auto-saved to `generation_id`."
+          }
+        },
+        {
+          "name": "Generate - Educational",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"videoType\": \"educational\",\n  \"topic\": \"How machine learning works\",\n  \"keywords\": [\"neural networks\", \"data\", \"training\", \"model\"],\n  \"audience\": \"high school students\",\n  \"tone\": \"casual\",\n  \"duration\": \"60s\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "generate"]
+            }
+          }
+        },
+        {
+          "name": "Generate - Social Media",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"videoType\": \"social_media\",\n  \"topic\": \"Morning productivity routine\",\n  \"keywords\": [\"productivity\", \"morning\", \"routine\", \"wellness\"],\n  \"audience\": \"young professionals\",\n  \"tone\": \"inspirational\",\n  \"duration\": \"15s\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "generate"]
+            }
+          }
+        },
+        {
+          "name": "Generate - Explainer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"videoType\": \"explainer\",\n  \"topic\": \"What is blockchain technology\",\n  \"keywords\": [\"blockchain\", \"decentralization\", \"crypto\", \"ledger\"],\n  \"audience\": \"general public\",\n  \"tone\": \"formal\",\n  \"duration\": \"90s\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "generate"]
+            }
+          }
+        },
+        {
+          "name": "Generate - Missing Required Field",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"videoType\": \"marketing\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "generate"]
+            },
+            "description": "Should return 400 — topic is required."
+          }
+        },
+        {
+          "name": "Generate - Invalid videoType",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"videoType\": \"random_type\",\n  \"topic\": \"Test topic\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "generate"]
+            },
+            "description": "Should return 400 — invalid enum value."
+          }
+        },
+        {
+          "name": "Generate - No Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"videoType\": \"marketing\",\n  \"topic\": \"Test\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "generate"]
+            },
+            "description": "Should return 401 — no token provided."
+          }
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "item": [
+        {
+          "name": "Get All History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/history",
+              "host": ["{{base_url}}"],
+              "path": ["api", "history"]
+            },
+            "description": "Returns all generations for the authenticated user, sorted by newest first."
+          }
+        },
+        {
+          "name": "Get Single Generation",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/history/{{generation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "history", "{{generation_id}}"]
+            },
+            "description": "Uses the `generation_id` saved automatically from the Generate request."
+          }
+        },
+        {
+          "name": "Delete Generation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/history/{{generation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "history", "{{generation_id}}"]
+            },
+            "description": "Deletes the generation. Returns success message and deleted ID."
+          }
+        },
+        {
+          "name": "Get - Invalid ID Format",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/history/not-a-valid-id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "history", "not-a-valid-id"]
+            },
+            "description": "Should return 400 — Invalid generation ID."
+          }
+        },
+        {
+          "name": "Get - Not Found",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/history/000000000000000000000000",
+              "host": ["{{base_url}}"],
+              "path": ["api", "history", "000000000000000000000000"]
+            },
+            "description": "Valid ObjectId format but non-existent — should return 404."
+          }
+        },
+        {
+          "name": "History - No Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/history",
+              "host": ["{{base_url}}"],
+              "path": ["api", "history"]
+            },
+            "description": "Should return 401 — no token provided."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Root",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "Should return { message: 'AIVidGen API is running' }"
+          }
+        }
+      ]
+    }
+  ]
+}
